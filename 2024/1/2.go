@@ -1,34 +1,21 @@
 package main
 
 import (
+	"advent-of-code/2024/1/utils"
 	"fmt"
-	"os"
-	"strings"
-    "strconv"
 )
 
 func main() {
-    fileData, _ := os.ReadFile("input.txt")
-	stringArr := strings.Split(string(fileData), "\n")
-
-	left := make([]int, int(len(stringArr)))
-	right := make([]int, int(len(stringArr)))
-
-	for i := 0; i < len(stringArr); i++ {
-		row := strings.Split(stringArr[i], "   ")
-		
-		left[i], _ = strconv.Atoi(row[0])
-		right[i], _ = strconv.Atoi(row[1])
-	}
+	left, right := utils.GetInput()
 
 	sum := 0
 	dict:= make(map[int]int)
-	
-	for i := 0; i < len(stringArr); i++ {
+
+	for i := 0; i < len(right); i++ {
 		dict[right[i]] = dict[right[i]] + 1
 	}
 
-	for i := 0; i < len(stringArr); i++ {
+	for i := 0; i < len(right); i++ {
 		sum += dict[left[i]] * left[i]
 	}
 
