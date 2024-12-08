@@ -7,41 +7,19 @@ import (
 	"strings"
 )
 
-func VisualizePath(startX int, startY int, guardMap [][]string, visited map[string]int, oX int, oY int) {
-	for key := range visited {
-		a := strings.Split(key, "|")
-		b := strings.Split(a[0], ",")
-		n1, _ := strconv.Atoi(b[0])
-		n2, _ := strconv.Atoi(b[1])
-
-		guardMap[n2][n1] = "X"
-	}
-	guardMap[oY][oX] = "O"
-	guardMap[startY][startX] = "^"
-	for _, row := range guardMap {
-		fmt.Println(row)
-	}
-	fmt.Println()
-}
-
-func IsLoop(startX int, startY int, startDirection string, guardMap [][]string, oX int, oY int) bool {
+func IsLoop(startX int, startY int, startDirection string, guardMap [][]string) bool {
 	x := startX
 	y := startY
 	direction := startDirection
 	visited := make(map[string]int)
 
-	for y > 0 && x > 0 && x < len(guardMap[0]) && y < len(guardMap) {
+	for utils.PositionIsWithinBounds(x, y, guardMap) {
 		guardMap[y][x] = utils.Ground
 		x, y, direction = utils.GetNext(x, y, guardMap, direction)
+
 		position := fmt.Sprintf("%d,%d|%s", x, y, direction)
-		if visited[position] == 4 {
-
-			//VisualizePath(startX, startY, guardMap, visited, oX, oY)
-
+		if visited[position] == 1 {
 			return true
-		}
-		if x >= 0 && y >= 0 {
-			guardMap[y][x] = direction
 		}
 
 		visited[position]++
@@ -73,7 +51,7 @@ func AddObstacleToOnlyVisitedPositions(startX int, startY int, startDirection st
 		guardMapCopy := CopyMap(guardMap)
 		guardMapCopy[visitedY][visitedX] = utils.Obstacle
 
-		if IsLoop(startX, startY, startDirection, guardMapCopy, visitedX, visitedY) {
+		if IsLoop(startX, startY, startDirection, guardMapCopy) {
 			loops++
 		}
 	}
@@ -81,42 +59,11 @@ func AddObstacleToOnlyVisitedPositions(startX int, startY int, startDirection st
 	return loops
 }
 
-func AddObstacleToAllPositions(startX int, startY int, startDirection string, guardMap [][]string) int {
-	loops := 0
-	for i, row := range guardMap {
-		fmt.Println("i: ", i)
-		for j, _ := range row {
-			guardMapCopy := CopyMap(guardMap)
-			guardMapCopy[i][j] = utils.Obstacle
-
-			if IsLoop(startX, startY, startDirection, guardMapCopy, j, i) {
-				loops++
-			}
-		}
-
-	}
-
-	return loops
-}
-
 func main() {
 	guardMap, startX, startY, startDirection := utils.GetInput()
-	x := startX
-	y := startY
-	direction := startDirection
-	steps := 0
-	visited := make(map[string]int)
 
-	for y > 0 && x > 0 && x < len(guardMap[0]) && y < len(guardMap) {
-		steps++
-		visited[utils.GetMapKey(x, y)] = steps
-		guardMap[y][x] = utils.Ground
-		x, y, direction = utils.GetNext(x, y, guardMap, direction)
-		if x >= 0 && y >= 0 {
-			guardMap[y][x] = direction
-		}
-	}
+	visited := utils.GetVisitedPath(startX, startY, startDirection, guardMap)
 
-	// 2132 is too low....
+	// 2188 is  correct
 	fmt.Println(AddObstacleToOnlyVisitedPositions(startX, startY, startDirection, guardMap, visited))
 }

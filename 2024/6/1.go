@@ -6,21 +6,10 @@ import (
 )
 
 func main() {
-	guardMap, x, y, direction := utils.GetInput()
-	visited := make(map[string]int)
-	steps := 0
+	guardMap, startX, startY, startDirection := utils.GetInput()
 
-	visited[utils.GetMapKey(x, y)] = steps
+	visited := utils.GetVisitedPath(startX, startY, startDirection, guardMap)
 
-	for y > 0 && x > 0 && x < len(guardMap[0]) && y < len(guardMap) {
-		steps++
-		visited[utils.GetMapKey(x, y)] = steps
-		guardMap[y][x] = utils.Ground
-		x, y, direction = utils.GetNext(x, y, guardMap, direction)
-		if x >= 0 && y >= 0 {
-			guardMap[y][x] = direction
-		}
-	}
-
+	// Answer is 5453
 	fmt.Println(len(visited))
 }
