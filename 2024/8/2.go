@@ -7,12 +7,9 @@ import (
 )
 
 func main() {
-	inputPuzzle, antennas := utils.GetInput()
-	uniqueAntiNodes := make(map[string]utils.Location)
-	outerX := len(inputPuzzle[0])
-	outerY := len(inputPuzzle)
-
-	length := make([]int, int(math.Max(float64(len(inputPuzzle)), float64(len(inputPuzzle[0])))))
+	_, antennas, outerX, outerY := utils.GetInput()
+	uniqueAntiNodes := make(map[string]utils.Item)
+	antiNodeDistances := make([]int, int(math.Max(float64(outerY), float64(outerX))))
 
 	for key := range antennas {
 		for _, location := range antennas[key] {
@@ -20,23 +17,22 @@ func main() {
 
 			for _, antiNode := range antiNodes {
 
-				uniqueAntiNodes[antiNode.AntennaB.Key] = antiNode.NodeB
-				uniqueAntiNodes[antiNode.AntennaA.Key] = antiNode.NodeA
-				inputPuzzle[antiNode.AntennaA.Y][antiNode.AntennaA.X] = antiNode.NodeA.Symbol
-				inputPuzzle[antiNode.AntennaB.Y][antiNode.AntennaB.X] = antiNode.NodeA.Symbol
-				for i := range length {
+				uniqueAntiNodes[antiNode.AntennaB.Location.Key] = antiNode.NodeB
+				uniqueAntiNodes[antiNode.AntennaA.Location.Key] = antiNode.NodeA
 
-					nodeAy := antiNode.NodeA.Y - (i * antiNode.Distance.Y)
-					nodeAx := antiNode.NodeA.X - (i * antiNode.Distance.X)
-					nodeBy := antiNode.NodeB.Y + (i * antiNode.Distance.Y)
-					nodeBx := antiNode.NodeB.X + (i * antiNode.Distance.X)
+				for distance := range antiNodeDistances {
+					distanceY := distance * antiNode.DistanceY
+					distanceX := distance * antiNode.DistanceX
 
-					if nodeAy > -1 && nodeAx > -1 && nodeAy < outerY && nodeAx < outerX {
-						inputPuzzle[nodeAy][nodeAx] = antiNode.NodeA.Symbol
+					nodeAy := antiNode.NodeA.Location.Y - distanceY
+					nodeAx := antiNode.NodeA.Location.X - distanceX
+					nodeBy := antiNode.NodeB.Location.Y + distanceY
+					nodeBx := antiNode.NodeB.Location.X + distanceX
+
+					if utils.PositionIsNotOutOfBounds(nodeAx, nodeAy, outerX, outerY) {
 						uniqueAntiNodes[utils.GetMapKey(nodeAx, nodeAy)] = antiNode.NodeA
 					}
-					if nodeBy > -1 && nodeBx > -1 && nodeBy < outerY && nodeBx < outerX {
-						inputPuzzle[nodeBy][nodeBx] = antiNode.NodeB.Symbol
+					if utils.PositionIsNotOutOfBounds(nodeBx, nodeBy, outerX, outerY) {
 						uniqueAntiNodes[utils.GetMapKey(nodeBx, nodeBy)] = antiNode.NodeB
 					}
 				}
@@ -44,9 +40,6 @@ func main() {
 			}
 		}
 
-	}
-	for _, row := range inputPuzzle {
-		fmt.Println(row)
 	}
 
 	fmt.Println(len(uniqueAntiNodes))

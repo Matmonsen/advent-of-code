@@ -7,76 +7,79 @@ import (
 )
 
 const Ground = "."
-const Node = "#"
+const AntiNode = "#"
 
 type Location struct {
-	X      int
-	Y      int
-	Key    string
-	Symbol string
+	X   int
+	Y   int
+	Key string
 }
 
-type AntiNode struct {
-	AntennaA Location
-	NodeA    Location
-	AntennaB Location
-	NodeB    Location
-	Distance Location
+type Item struct {
+	Location Location
+	Symbol   string
 }
 
-func FindAntiNodes(antenna Location, locations []Location) []AntiNode {
-	antiNodes := make([]AntiNode, 0)
+type SignalFrequency struct {
+	AntennaA  Item
+	NodeA     Item
+	AntennaB  Item
+	NodeB     Item
+	DistanceX int
+	DistanceY int
+}
 
-	for _, location := range locations {
-		if location.Key == antenna.Key {
+func PositionIsNotOutOfBounds(x int, y int, maxX int, maxY int) bool {
+	return y > -1 && x > -1 && y < maxY && x < maxX
+}
+
+func CreateLocation(x int, y int) Location {
+	return Location{
+		x,
+		y,
+		GetMapKey(x, y),
+	}
+}
+
+func FindAntiNodes(antenna Item, items []Item) []SignalFrequency {
+	signalFrequencies := make([]SignalFrequency, 0)
+
+	for _, item := range items {
+		if item.Location.Key == antenna.Location.Key {
 			continue
 		}
 
-		x := antenna.X - location.X
-		y := antenna.Y - location.Y
+		distanceX := antenna.Location.X - item.Location.X
+		distanceY := antenna.Location.Y - item.Location.Y
 
-		nodeAx := location.X - x
-		nodeAy := location.Y - y
-
-		nodeBx := antenna.X + x
-		nodeBy := antenna.Y + y
-
-		antiNodes = append(antiNodes, AntiNode{
+		signalFrequencies = append(signalFrequencies, SignalFrequency{
 			antenna,
-			Location{
-				nodeAx,
-				nodeAy,
-				GetMapKey(nodeAx, nodeAy),
-				Node,
+			Item{
+				CreateLocation(item.Location.X-distanceX, item.Location.Y-distanceY),
+				AntiNode,
 			},
-			location,
-			Location{
-				nodeBx,
-				nodeBy,
-				GetMapKey(nodeBx, nodeBy),
-				Node,
+			item,
+			Item{
+				CreateLocation(antenna.Location.X+distanceX, antenna.Location.Y+distanceY),
+				AntiNode,
 			},
-			Location{
-				x,
-				y,
-				GetMapKey(x, y),
-				"",
-			},
+			distanceX,
+			distanceY,
 		})
 	}
 
-	return antiNodes
+	return signalFrequencies
 }
 
 func GetMapKey(x int, y int) string {
 	return fmt.Sprintf("%d,%d", x, y)
 }
 
-func GetInput() ([][]string, map[string][]Location) {
+func GetInput() ([][]string, map[string][]Item, int, int) {
 	fileData, _ := os.ReadFile("input.txt")
 	rows := strings.Split(string(fileData), "\n")
 	puzzleInput := make([][]string, len(rows))
-	antennaMap := make(map[string][]Location)
+	antennaMap := make(map[string][]Item)
 
 	for y, line := range rows {
 		puzzleInput[y] = strings.Split(line, "")
@@ -84,13 +87,20 @@ func GetInput() ([][]string, map[string][]Location) {
 			if char != Ground {
 				_, exists := antennaMap[char]
 				if !exists {
-					antennaMap[char] = make([]Location, 0)
+					antennaMap[char] = make([]Item, 0)
 				}
 
-				antennaMap[char] = append(antennaMap[char], Location{x, y, GetMapKey(x, y), char})
+				antennaMap[char] = append(antennaMap[char], Item{
+					Location{x, y, GetMapKey(x, y)},
+					char,
+				})
 			}
 
 		}
 	}
-	return puzzleInput, antennaMap
+
+	outerY := len(puzzleInput)
+	outerX := len(puzzleInput[0])
+
+	return puzzleInput, antennaMap, outerX, outerY
 }
