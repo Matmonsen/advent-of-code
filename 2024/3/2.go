@@ -16,5 +16,5 @@ func main() {
 		data = strings.Replace(data, match, "", 1)
 	}
 
-	fmt.Println(utils.GetSumOfMatches(data))
+	fmt.Println(utils.GetSumOfMatches(data))$
 }
